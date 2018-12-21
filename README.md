@@ -6,5 +6,6 @@ Installation:
 1. $ npm install
 2. $ node server.js
 3. Connect on http://localhost:7777/
+
 ∞. Share your private ip and have local area network friends join you!
 
