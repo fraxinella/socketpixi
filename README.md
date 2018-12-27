@@ -2,6 +2,7 @@
 Using socket.io and pixi.js to create an interactive multiplayer experience. 
 
 Installation:
+
 0. Have Node.js installed.
 1. $ npm install
 2. $ node server.js
