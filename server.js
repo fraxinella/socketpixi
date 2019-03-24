@@ -65,6 +65,6 @@ setInterval(()=>{
     io.emit('updatePositions', allUsers);
 }, 1000 / 10)
 
-http.listen(7777, () => {
-    console.log('Listening on 7777');
+http.listen(80, () => {
+    console.log('Listening on 80');
 })
