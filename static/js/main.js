@@ -41,7 +41,7 @@ function start() {
     console.log("\n*** Startup! ***")
     console.log("All Positions", positions);
     
-    app.stage.addChild(new PIXI.Text('DojoNorth: 152.117.208.10:7777', {fontSize: "8em", fill: "#BE6B7A"}));
+    // app.stage.addChild(new PIXI.Text('DojoNorth: 152.117.208.10:7777', {fontSize: "8em", fill: "#BE6B7A"}));
     destination = new PIXI.Sprite(PIXI.loader.resources["/img/cursor.png"].texture);
     destination.scale.set(2,2);
     app.stage.addChild(destination);
