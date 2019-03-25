@@ -84,9 +84,7 @@ socket.on('connect', () => {
     console.log("\n*** CONNECTED TO SOCKET *** ", socket.id);
     id = socket.id,
     console.log(id);
-    
-    
-    
+
     document.addEventListener('mousemove', ()=>{
         if(destination){
             destination.x = app.renderer.plugins.interaction.mouse.global.x;
@@ -94,14 +92,13 @@ socket.on('connect', () => {
         }
         // console.log('mouse moving!', positions[id]);
     })
-    
-    
 });
 
 socket.on('initPositions', (data) => {
     console.log('\n*** Initializing Positions ***');
     positions = data;
-    console.log(positions)
+    console.log(positions);
+    start();
 })
 
 socket.on('updatePositions', (newPositions)=> {
