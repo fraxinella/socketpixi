@@ -4,6 +4,16 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const zoom = 8;
 
+const Game = {
+    width: 128,
+    height: 128,
+    map: {},
+    actors: {},
+    props: {},
+    items: {},
+    commandList: {},
+}
+
 stage = {
     width: 1024,
     height: 512
@@ -58,10 +68,6 @@ setInterval(() => {
         allUsers[id].x += (inputPack[id].x - allUsers[id].x) * .25;
         allUsers[id].y += (inputPack[id].y - allUsers[id].y) * .25;
     }
-}, 1000 / 10)
-
-setInterval(()=>{
-    // console.log("PACK: ", positionPack);
     io.emit('updatePositions', allUsers);
 }, 1000 / 10)
 
