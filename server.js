@@ -2,16 +2,40 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const zoom = 8;
 
 const Game = {
     width: 128,
     height: 128,
     map: {},
+    freeCells: [],
     actors: {},
     props: {},
     items: {},
     commandList: {},
+}
+
+initGame = () => {
+    console.log("Initializing Game!");
+    let count = 0;
+    Game.map = {};
+
+    while(count < 128*128*.75) {
+        let xr = Math.floor(Math.random() * Game.width);
+        let yr = Math.floor(Math.random() * Game.height);
+        let key = xr+","+yr;
+
+        if(!Game.map[key]) {
+            Game.map[key] = {
+                type: "grass",
+                actor: null,
+                items: [],
+            }
+            Game.freeCells.push(key);
+            count++;
+        }
+    }
+
+    console.log("Map Created: ", Game.map);
 }
 
 stage = {
@@ -46,8 +70,9 @@ io.on('connection', (socket) => {
         x:0,
         y:0
     }
-    
+    socket.emit('initMap', Game.map);
     socket.emit('initPositions', allUsers);
+
 
     socket.on('playerInput', (data) => {
         inputPack[data.id] = {x: data.x, y: data.y};
@@ -74,3 +99,5 @@ setInterval(() => {
 http.listen(7777, () => {
     console.log('Listening on 7777');
 })
+
+initGame();

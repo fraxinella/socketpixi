@@ -1,8 +1,10 @@
 console.log("\n*** MAIN.JS ***")
 var id = null;
 var destination = null;
-const sprites = {}
-var positions = {}
+const graphics = new PIXI.Graphics();
+const sprites = {};
+var positions = {};
+var world = {};
 const zoom = 4;
 
 const app = new PIXI.Application({
@@ -11,7 +13,7 @@ const app = new PIXI.Application({
     antialias: false, 
     transparent: false,
     resolution: 1,
-    //view: document.getElementById("game")
+    //view: document.getElementById("game");
 })
 
 document.body.appendChild(app.view);
@@ -25,8 +27,7 @@ app.renderer.resize(window.innerWidth, window.innerHeight);
 
 window.addEventListener('resize', ()=> {
     app.renderer.resize(window.innerWidth, window.innerHeight);
-
-})
+});
 
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
@@ -41,6 +42,8 @@ function start() {
     console.log("\n*** Startup! ***")
     console.log("All Positions", positions);
     
+    app.stage.addChild(graphics);
+
     // app.stage.addChild(new PIXI.Text('DojoNorth: 152.117.208.10:7777', {fontSize: "8em", fill: "#BE6B7A"}));
     if(!destination) {
         destination = new PIXI.Sprite(PIXI.loader.resources["/img/cursor.png"].texture);
@@ -81,6 +84,15 @@ const gameLoop = () => {
     requestAnimationFrame(gameLoop);
 }
 
+const drawMap = () => {
+    graphics.clear();
+    for(let key in world){
+        parts = key.split(',');
+        graphics.beginFill(0x887788);
+        graphics.drawRect(parseInt(parts[0])*48, parseInt(parts[1])*48, 48, 48);
+    }
+}
+
 const socket = io();
 
 socket.on('connect', () => {
@@ -96,6 +108,12 @@ socket.on('connect', () => {
         // console.log('mouse moving!', positions[id]);
     })
 });
+
+socket.on('initMap', (mapData) => {
+    console.log("Got Map Data!", {...mapData});
+    world = {...mapData};
+    drawMap();
+})
 
 socket.on('initPositions', (data) => {
     console.log('\n*** Initializing Positions ***');
