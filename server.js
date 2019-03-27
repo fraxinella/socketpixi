@@ -35,7 +35,7 @@ initGame = () => {
         }
     }
 
-    console.log("Map Created: ", Game.map);
+    // console.log("Map Created: ", Game.map);
 }
 
 stage = {
@@ -61,38 +61,33 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('User: ', socket.id, ' connected.');
     socket.broadcast.emit('playerConnect', socket.id);
-    allUsers[socket.id] = {
-        x: 0,
-        y: 0
-    }
     
-    inputPack[socket.id] = {
-        x:0,
-        y:0
+    let key = Game.freeCells.splice(Math.floor(Math.random * Game.freeCells.length), 1)[0];
+    let [x,y] = key.split(',');
+    let actor = Game.actors[socket.id] = {
+        x: x,
+        y: y,
+        name: "stinky",
     }
-    socket.emit('initMap', Game.map);
-    socket.emit('initPositions', allUsers);
-
-
-    socket.on('playerInput', (data) => {
-        inputPack[data.id] = {x: data.x, y: data.y};
-    })
+    Game.map[key].actor = actor;
+    socket.emit('mapData', Game.map, Game.actors)
+    // socket.on('playerInput', (data) => {
+    //     inputPack[data.id] = {x: data.x, y: data.y};
+    // })
     
     socket.on('disconnect', () => {
         console.log('User: ', socket.id, ' disconnected.');
-        // console.log("all users: ", allUsers);
         socket.broadcast.emit('playerDisconnect', socket.id);
-        delete allUsers[socket.id];
-        delete inputPack[socket.id];
+        // console.log("all users: ", allUsers);
+        let {x,y} = Game.actors[socket.id];
+        Game.map[x+','+y].actor = null;
+        Game.freeCells.push(x+','+y);
+        delete Game.actors[socket.id];
     });
 });
 
 setInterval(() => {
-    for(let id in allUsers){
-        // console.log("INPUT:",inputPack[id]);
-        allUsers[id].x += (inputPack[id].x - allUsers[id].x) * .25;
-        allUsers[id].y += (inputPack[id].y - allUsers[id].y) * .25;
-    }
+    
     io.emit('updatePositions', allUsers);
 }, 1000 / 10)
 

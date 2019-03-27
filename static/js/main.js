@@ -18,7 +18,7 @@ const app = new PIXI.Application({
 
 document.body.appendChild(app.view);
 
-app.renderer.backgroundColor = 0xe0afb8;
+app.renderer.backgroundColor = 0x221122;
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";
 app.renderer.view.style.margin = "auto";
@@ -40,56 +40,56 @@ PIXI.loader
 
 function start() {
     console.log("\n*** Startup! ***")
-    console.log("All Positions", positions);
-    
     app.stage.addChild(graphics);
+    // console.log("All Positions", positions);
+    
 
     // app.stage.addChild(new PIXI.Text('DojoNorth: 152.117.208.10:7777', {fontSize: "8em", fill: "#BE6B7A"}));
-    if(!destination) {
-        destination = new PIXI.Sprite(PIXI.loader.resources["/img/cursor.png"].texture);
-        destination.scale.set(2,2);
-        app.stage.addChild(destination);
-    }
+    // if(!destination) {
+    //     destination = new PIXI.Sprite(PIXI.loader.resources["/img/cursor.png"].texture);
+    //     destination.scale.set(2,2);
+    //     app.stage.addChild(destination);
+    // }
     
     
-    for(let _id in positions){
-        if(!sprites[_id]){
-            console.log('adding sprite', _id);
-            sprites[_id] = new PIXI.Sprite(PIXI.loader.resources["/img/persephone.png"].texture);    
-            app.stage.addChild(sprites[_id]);
-            sprites[_id].scale.set(zoom, zoom);
-            sprites[_id].position.set(positions.x, positions.y)
-            app.stage.addChild(sprites[_id]);
-        }
-    }
+    // for(let _id in positions){
+    //     if(!sprites[_id]){
+    //         console.log('adding sprite', _id);
+    //         sprites[_id] = new PIXI.Sprite(PIXI.loader.resources["/img/persephone.png"].texture);    
+    //         app.stage.addChild(sprites[_id]);
+    //         sprites[_id].scale.set(zoom, zoom);
+    //         sprites[_id].position.set(positions.x, positions.y)
+    //         app.stage.addChild(sprites[_id]);
+    //     }
+    // }
     
-    positions[id] = {x: destination.x, y: destination.y };
+    // positions[id] = {x: destination.x, y: destination.y };
 
-    console.log("DA SPRITES", {...sprites});
+    //console.log("DA SPRITES", {...sprites});
+    
+    window.addEventListener("resize", (event) => {
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+    });
+        
+        // socket.emit('playerInput', {id: id, x: destination.x, y: destination.y})
     console.log("\n*** Start Game Loop: ***");
-    
-    // window.addEventListener("resize", (event) => {
-    //     app.renderer.resize(window.innerWidth, window.innerHeight);
-    // });
-
-    socket.emit('playerInput', {id: id, x: destination.x, y: destination.y})
-    gameLoop();
+    //gameLoop();
 }
 
-const gameLoop = () => {
-    for(let _id in sprites){
-        if(positions[_id]) sprites[_id]['x'] += (positions[_id]['x'] - sprites[_id]['x']) * .1;
-        if(positions[_id]) sprites[_id]['y'] += (positions[_id]['y'] - sprites[_id]['y']) * .1;
-    }
-    requestAnimationFrame(gameLoop);
-}
+// const gameLoop = () => {
+//     for(let _id in sprites){
+//         if(positions[_id]) sprites[_id]['x'] += (positions[_id]['x'] - sprites[_id]['x']) * .1;
+//         if(positions[_id]) sprites[_id]['y'] += (positions[_id]['y'] - sprites[_id]['y']) * .1;
+//     }
+//     requestAnimationFrame(gameLoop);
+// }
 
 const drawMap = () => {
     graphics.clear();
     for(let key in world){
         parts = key.split(',');
-        graphics.beginFill(0x887788);
-        graphics.drawRect(parseInt(parts[0])*48, parseInt(parts[1])*48, 48, 48);
+        world[key].actor ? graphics.beginFill(0xff00ff) : graphics.beginFill(0x778877);
+        graphics.drawRect(parseInt(parts[0])*4, parseInt(parts[1])*4, 4, 4);
     }
 }
 
@@ -97,20 +97,20 @@ const socket = io();
 
 socket.on('connect', () => {
     console.log("\n*** CONNECTED TO SOCKET *** ", socket.id);
-    id = socket.id,
-    console.log(id);
+    id = socket.id;
 
-    document.addEventListener('mousemove', ()=>{
-        if(destination){
-            destination.x = app.renderer.plugins.interaction.mouse.global.x;
-            destination.y = app.renderer.plugins.interaction.mouse.global.y;
-        }
-        // console.log('mouse moving!', positions[id]);
-    })
+    // document.addEventListener('mousemove', ()=>{
+    //     if(destination){
+    //         destination.x = app.renderer.plugins.interaction.mouse.global.x;
+    //         destination.y = app.renderer.plugins.interaction.mouse.global.y;
+    //     }
+    //     // console.log('mouse moving!', positions[id]);
+    // })
 });
 
-socket.on('initMap', (mapData) => {
+socket.on('mapData', (mapData, actorData) => {
     console.log("Got Map Data!", {...mapData});
+    console.log("Actors: ", {...actorData});
     world = {...mapData};
     drawMap();
 })
