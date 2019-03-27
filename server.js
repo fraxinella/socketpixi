@@ -60,8 +60,6 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('User: ', socket.id, ' connected.');
-    socket.broadcast.emit('playerConnect', socket.id);
-    
     let key = Game.freeCells.splice(Math.floor(Math.random * Game.freeCells.length), 1)[0];
     let [x,y] = key.split(',');
     let actor = Game.actors[socket.id] = {
@@ -71,13 +69,17 @@ io.on('connection', (socket) => {
     }
     Game.map[key].actor = actor;
     socket.emit('mapData', Game.map, Game.actors)
-    // socket.on('playerInput', (data) => {
-    //     inputPack[data.id] = {x: data.x, y: data.y};
-    // })
+    
+    socket.broadcast.emit('playerConnect', socket.id, Game.map, Game.actors);
+    
+    socket.on('playerInput', (data) => {
+        //If there's data, set a command for this id in Game.commandList
+        // if not delete
+    })
     
     socket.on('disconnect', () => {
         console.log('User: ', socket.id, ' disconnected.');
-        socket.broadcast.emit('playerDisconnect', socket.id);
+        socket.broadcast.emit('playerDisconnect', socket.id, Game.map, Game.actors);
         // console.log("all users: ", allUsers);
         let {x,y} = Game.actors[socket.id];
         Game.map[x+','+y].actor = null;
@@ -87,8 +89,7 @@ io.on('connection', (socket) => {
 });
 
 setInterval(() => {
-    
-    io.emit('updatePositions', allUsers);
+    //process command list
 }, 1000 / 10)
 
 http.listen(7777, () => {
