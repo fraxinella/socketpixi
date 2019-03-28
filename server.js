@@ -7,11 +7,51 @@ const Game = {
     width: 128,
     height: 128,
     map: {},
-    freeCells: [],
+    freeCells: {}, // Do I need to keep free cells around.. or just iterate to find the free cells.
     actors: {},
     props: {},
     items: {},
     commandList: {},
+}
+
+const doCommands = () => {
+    for(let actorID in Game.commandList) { 
+        let actor = Game.actors[actorID];
+
+        for(let command in Game.commandList[actorID]){
+            switch(command) {
+                case 'w':
+                    moveActor(actorID, actor.x.toString()+','+(actor.y-1).toString());
+                    break;
+                case 's':
+                    moveActor(actorID, actor.x.toString()+','+(actor.y+1).toString());
+                    break;
+                case 'a':
+                    moveActor(actorID, (actor.x-1).toString()+','+(actor.y).toString());
+                    break;
+                case 'd':
+                    moveActor(actorID, (actor.x+1).toString()+','+(actor.y).toString());
+                    break;
+                default:
+            }
+        }
+    }
+}
+
+const moveActor = (actorID, dest) => {
+    if(Game.map[dest] && Game.map[dest].actor === null) {
+        let [dx,dy] = dest.split(',');
+        let actor = Game.actors[actorID];
+        Game.map[actor.x+','+actor.y].actor = null;
+        Game.freeCells[actor.x+','+actor.y] = 
+        Game.map[dx+','+dy].actor = actor;
+        actor.x = parseInt(dx);
+        actor.y = parseInt(dy);
+
+        delete Game.freeCells[dest];
+    } else {
+
+    }
 }
 
 initGame = () => {
@@ -30,26 +70,12 @@ initGame = () => {
                 actor: null,
                 items: [],
             }
-            Game.freeCells.push(key);
+            Game.freeCells[key] = true;
             count++;
         }
     }
 
     // console.log("Map Created: ", Game.map);
-}
-
-stage = {
-    width: 1024,
-    height: 512
-}
-
-const allUsers = {};
-const inputPack = {};
-const ball = {
-    x: 512,
-    y: 256,
-    width: 8,
-    height: 8
 }
 
 app.use(express.static('static'));
@@ -60,9 +86,11 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('User: ', socket.id, ' connected.');
-    let key = Game.freeCells.splice(Math.floor(Math.random * Game.freeCells.length), 1)[0];
+    let keys = Object.keys(Game.freeCells);
+    key = keys[Math.floor(Math.random() * keys.length)];
     let [x,y] = key.split(',');
     let actor = Game.actors[socket.id] = {
+        id: socket.id,
         x: x,
         y: y,
         name: "stinky",
@@ -79,18 +107,29 @@ io.on('connection', (socket) => {
     
     socket.on('disconnect', () => {
         console.log('User: ', socket.id, ' disconnected.');
-        socket.broadcast.emit('playerDisconnect', socket.id, Game.map, Game.actors);
-        // console.log("all users: ", allUsers);
+
         let {x,y} = Game.actors[socket.id];
         Game.map[x+','+y].actor = null;
-        Game.freeCells.push(x+','+y);
+        Game.freeCells[x+','+y] = true;
         delete Game.actors[socket.id];
     });
+
+    socket.on('command', (command) => {
+        Game.commandList = { ...Game.commandList, [socket.id]:command }
+    })
 });
 
+
+
 setInterval(() => {
-    //process command list
-}, 1000 / 10)
+    // Process commands
+    doCommands();
+    Game.commandList = {};
+    // Process game changes
+
+    // Emit new data
+    io.emit('mapData', Game.map, Game.actors);
+}, 1000 / 4)
 
 http.listen(7777, () => {
     console.log('Listening on 7777');
