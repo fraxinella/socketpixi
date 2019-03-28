@@ -3,12 +3,14 @@ var id = null;
 const graphics = new PIXI.Graphics();
 
 var command = {};
-
+var changed = false;
 const Game = {
     world: {},
     actorData: {},
     player: {}
 }
+var timer = 0;
+var tick = 1000 / 10; //  10hz
 
 const app = new PIXI.Application({
     width: 1024, 
@@ -34,15 +36,6 @@ window.addEventListener('resize', ()=> {
     app.renderer.resize(window.innerWidth, window.innerHeight);
 });
 
-function start() {
-    console.log("\n*** Startup! ***");
-    app.stage.addChild(graphics);
-
-    window.addEventListener("resize", (event) => {
-        app.renderer.resize(window.innerWidth, window.innerHeight);
-    });
-}
-
 const drawMap = () => {
     graphics.clear();
     for(let key in Game.world){
@@ -65,14 +58,21 @@ socket.on('connect', () => {
     id = socket.id;
 
     document.addEventListener('keydown', (event)=>{
+        changed = true;
         command[event.key] = true;
     });
 
     document.addEventListener('keyup', (event) => {
+        changed = true;
         delete command[event.key];
     });
 
-    start();
+    console.log("\n*** Startup! ***");
+    app.stage.addChild(graphics);
+
+    window.addEventListener("resize", (event) => {
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+    });
 });
 
 socket.on('mapData', (mapData, actorData) => {
@@ -81,9 +81,12 @@ socket.on('mapData', (mapData, actorData) => {
     drawMap();
 })
 
-setInterval(()=>{ // maybe only emit when command changes, 
-    if(Object.keys(command).length > 0) {
+setInterval(()=>{ 
+    timer += tick;
+    if(changed || timer >= 500) {
         socket.emit('command', command);
+        changed = false;
+        timer %= 500;
     }
-}, 1000 / 4);
+}, 1000/60);
     
